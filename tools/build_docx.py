@@ -308,14 +308,10 @@ def phan_1_muc_tieu(tai_lieu: Document) -> None:
              "Ai clone kho cũng đọc được, lịch sử Git giữ vĩnh viễn, rò rỉ qua log và CI, vi phạm least privilege",
              "Mã hóa bằng POST /encrypt, lưu dạng {cipher}AQA..., khóa để ngoài kho"],
             ["3",
-             "Cổng 8085 nằm ngoài dải quy ước của FoodX",
-             "Khó quản lý, dễ đụng cổng khi triển khai",
-             "Chuẩn hóa về 8081"],
-            ["4",
              "Không tách cấu hình theo profile",
              "Không phân biệt được dev và prod",
              "Tách thành {app}.yml, {app}-dev.yml, {app}-prod.yml"],
-            ["5",
+            ["4",
              "Không có lớp cấu hình dùng chung",
              "Cấu hình giống nhau bị lặp ở mọi service",
              "Bổ sung application.yml và application-{profile}.yml"],
@@ -452,7 +448,7 @@ def phan_2_loi_ten_file(tai_lieu: Document) -> None:
             ["Config Server có đọc không", "Không bao giờ đọc", "Đọc và phục vụ đúng"],
             ["Kết quả GET /restaurant-service/dev", "propertySources rỗng", "4 nguồn cấu hình theo đúng thứ tự"],
             ["Mật khẩu", "RestaurantPass123 (chữ thô)", "{cipher}AQAxZ3J0... (đã mã hóa)"],
-            ["server.port", "8085 (ngoài dải quy ước)", "8081 (đúng dải FoodX)"],
+            ["server.port", "8085 (giữ nguyên)", "8085 (đề bài không yêu cầu đổi cổng)"],
             ["Tách theo profile", "Không có", "Có -dev.yml và -prod.yml"],
             ["Timeout, cờ tính năng", "Không có", "Đầy đủ theo nghiệp vụ nhà hàng"],
             ["Số file trong kho", "1 file duy nhất, sai tên", "12 file đúng quy ước cho 3 service"],
@@ -628,7 +624,7 @@ def phan_4_cau_truc(tai_lieu: Document) -> None:
                  "|-- application-dev.yml             <- LỚP 2: chung mọi service, profile dev\n"
                  "|-- application-prod.yml            <- LỚP 2: chung mọi service, profile prod\n"
                  "|\n"
-                 "|-- restaurant-service.yml          <- LỚP 3: riêng nhà hàng, cổng 8081\n"
+                 "|-- restaurant-service.yml          <- LỚP 3: riêng nhà hàng, cổng 8085\n"
                  "|-- restaurant-service-dev.yml      <- LỚP 4\n"
                  "|-- restaurant-service-prod.yml     <- LỚP 4\n"
                  "|\n"
@@ -645,7 +641,7 @@ def phan_4_cau_truc(tai_lieu: Document) -> None:
         tai_lieu,
         ["Service", "spring.application.name", "Cổng", "Cơ sở dữ liệu", "File trong kho"],
         [
-            ["Nhà hàng", "restaurant-service", "8081", "restaurants_db",
+            ["Nhà hàng", "restaurant-service", "8085", "restaurants_db",
              "restaurant-service.yml, -dev.yml, -prod.yml"],
             ["Đơn hàng", "order-service", "8082", "orders_db",
              "order-service.yml, -dev.yml, -prod.yml"],
@@ -777,8 +773,8 @@ def phan_5_ba_file_cau_hinh(tai_lieu: Document) -> None:
         ("5.1. restaurant-service.yml (file đã sửa từ config.yml)",
          "restaurant-service.yml",
          "Đây chính là file sửa lỗi của thực tập sinh: đổi tên từ config.yml thành "
-         "restaurant-service.yml, mã hóa mật khẩu bằng {cipher}, chuẩn hóa cổng về "
-         "8081 và bổ sung timeout, cờ tính năng cùng tham số nghiệp vụ nhà hàng."),
+         "restaurant-service.yml, mã hóa mật khẩu bằng {cipher}, giữ nguyên cổng 8085 "
+         "và bổ sung timeout, cờ tính năng cùng tham số nghiệp vụ nhà hàng."),
         ("5.2. order-service.yml",
          "order-service.yml",
          "Cấu hình cho service đặt đơn, cổng 8082, cơ sở dữ liệu orders_db. Ngoài "
@@ -930,7 +926,7 @@ def phan_7_kiem_tra(tai_lieu: Document) -> None:
                  '  "profiles": ["dev"],\n'
                  '  "label": "main",\n'
                  '  "propertySources": [\n'
-                 '    { "name": "...restaurant-service-dev.yml", "source": { "server.port": 8081 } },\n'
+                 '    { "name": "...restaurant-service-dev.yml", "source": { "server.port": 8085 } },\n'
                  '    { "name": "...restaurant-service.yml",     "source": { } },\n'
                  '    { "name": "...application-dev.yml",        "source": { } },\n'
                  '    { "name": "...application.yml",            "source": { } }\n'
@@ -949,10 +945,10 @@ def phan_7_kiem_tra(tai_lieu: Document) -> None:
     them_tieu_de(tai_lieu, "7.3. Kiểm chứng phía service bằng actuator", 2)
     them_khoi_ma(tai_lieu,
                  "# Xem service đã nạp cấu hình từ những nguồn nào\n"
-                 "curl http://localhost:8081/actuator/env | jq '.propertySources[].name'\n\n"
+                 "curl http://localhost:8085/actuator/env | jq '.propertySources[].name'\n\n"
                  "# Kiểm tra một khóa cụ thể và xuất xứ của nó\n"
-                 "curl http://localhost:8081/actuator/env/server.port\n"
-                 "curl http://localhost:8081/actuator/env/spring.datasource.url")
+                 "curl http://localhost:8085/actuator/env/server.port\n"
+                 "curl http://localhost:8085/actuator/env/spring.datasource.url")
     them_doan(tai_lieu, "Nếu cấu hình được nạp đúng, danh sách phải có các dòng chứa configserver:")
     them_khoi_ma(tai_lieu,
                  '"configserver:...foodx-config-repo/restaurant-service-dev.yml"\n'
@@ -974,13 +970,13 @@ def phan_7_kiem_tra(tai_lieu: Document) -> None:
     them_tieu_de(tai_lieu, "7.5. Làm mới cấu hình sau khi sửa", 2)
     them_khoi_ma(tai_lieu,
                  "# Làm mới một service\n"
-                 "curl -X POST http://localhost:8081/actuator/refresh\n"
+                 "curl -X POST http://localhost:8085/actuator/refresh\n"
                  "# Kết quả trả về danh sách khóa đã thay đổi:\n"
                  '# ["foodx.restaurant.timeout.read-timeout-ms"]\n\n'
                  "# Làm mới hàng loạt qua Spring Cloud Bus\n"
-                 "curl -X POST http://localhost:8081/actuator/busrefresh\n\n"
+                 "curl -X POST http://localhost:8085/actuator/busrefresh\n\n"
                  "# Chỉ làm mới đúng một thực thể\n"
-                 "curl -X POST http://localhost:8081/actuator/busrefresh/restaurant-service:8081")
+                 "curl -X POST http://localhost:8085/actuator/busrefresh/restaurant-service:8085")
     tai_lieu.add_page_break()
 
 
