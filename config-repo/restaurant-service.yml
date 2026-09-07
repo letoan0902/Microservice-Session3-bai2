@@ -1,0 +1,109 @@
+# =============================================================================
+# restaurant-service.yml
+#
+# ĐÂY LÀ FILE ĐÃ SỬA LỖI của thực tập sinh (file gốc sai tên: config.yml).
+#
+# Hai lỗi đã được khắc phục:
+#   1. Tên file: config.yml  ->  restaurant-service.yml
+#      Quy ước bắt buộc của Config Server là {spring.application.name}.yml.
+#      restaurant-service có spring.application.name = "restaurant-service"
+#      nên tên file phải là restaurant-service.yml thì Config Server mới
+#      phục vụ được khi service gọi tới /restaurant-service/{profile}.
+#   2. Mật khẩu: từ dạng chữ thô  ->  dạng {cipher}AQA...
+#      Chuỗi {cipher}... do Config Server giải mã tại thời điểm phục vụ
+#      cấu hình, service nhận được giá trị đã giải mã sẵn.
+#      Mật khẩu cũ đã từng bị commit chữ thô nên phải coi như đã lộ vĩnh viễn
+#      và đã được ĐỔI trên cơ sở dữ liệu trước khi mã hóa giá trị mới.
+#      Chính vì vậy, chuỗi mật khẩu cũ cũng không được nhắc lại trong kho này.
+#
+# LƯU Ý: các chuỗi {cipher}AQA... trong kho này là CHUỖI MINH HỌA (giả lập),
+# không phải bản mã thật. Bản mã thật được sinh bằng lệnh:
+#   curl -X POST http://localhost:8888/encrypt -d 'MatKhauThat'
+# =============================================================================
+
+server:
+  # Giữ nguyên cổng 8085 như file cấu hình gốc của đề bài.
+  # Đề bài chỉ yêu cầu sửa tên file và mã hóa mật khẩu, không yêu cầu đổi cổng.
+  port: 8085
+
+spring:
+  application:
+    name: restaurant-service
+  datasource:
+    url: jdbc:mysql://foodx-cluster.local:3306/restaurants_db?useSSL=true&serverTimezone=Asia/Ho_Chi_Minh
+    username: restaurant_service_user
+    # Mật khẩu đã được mã hóa bằng POST /encrypt của Config Server.
+    # Không bao giờ commit mật khẩu dạng chữ thô vào kho cấu hình.
+    password: "{cipher}AQAxZ3J0UmVzdGF1cmFudFBhc3NFbmNyeXB0ZWRTYW1wbGVCYXNlNjRTdHJpbmdGb29kWDAxMjM0NTY3ODlBQkNERUY="
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      pool-name: restaurant-hikari-pool
+      maximum-pool-size: 15
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    open-in-view: false
+
+  # Redis dùng để cache thực đơn và trạng thái mở cửa của nhà hàng
+  data:
+    redis:
+      host: redis.foodx.local
+      port: 6379
+      password: "{cipher}AQBSZWRpc1Jlc3RhdXJhbnRDYWNoZVBhc3N3b3JkRW5jcnlwdGVkU2FtcGxlRm9vZFhBQkNERUYwMTIzNDU2Nzg5"
+      timeout: 2000ms
+
+# --- Thời gian chờ riêng của restaurant-service ------------------------------
+foodx:
+  restaurant:
+    timeout:
+      # Thời gian chờ khi gọi sang các service khác
+      connect-timeout-ms: 3000
+      read-timeout-ms: 5000
+      # Thời gian chờ nhà hàng xác nhận đơn, quá hạn thì tự hủy
+      xac-nhan-don-timeout-giay: 120
+      # Thời gian chờ tối đa khi tra cứu thực đơn từ cache
+      tra-cuu-thuc-don-timeout-ms: 800
+
+    # --- Cờ tính năng (feature flag) ---------------------------------------
+    feature:
+      # Cho phép nhà hàng bật/tắt món ăn theo thời gian thực
+      bat-tat-mon-theo-thoi-gian-thuc: true
+      # Hiển thị đánh giá và bình luận của khách trên trang nhà hàng
+      hien-thi-danh-gia: true
+      # Gợi ý món ăn bằng mô hình học máy (đang thử nghiệm)
+      goi-y-mon-bang-ai: false
+      # Cho phép nhà hàng tự tạo khuyến mãi
+      nha-hang-tu-tao-khuyen-mai: false
+      # Tự động đóng nhà hàng khi quá số đơn tồn
+      tu-dong-dong-khi-qua-tai: true
+
+    # --- Cấu hình nghiệp vụ riêng của nhà hàng ------------------------------
+    business:
+      # Số đơn tối đa một nhà hàng xử lý đồng thời trước khi bị coi là quá tải
+      so-don-toi-da-dong-thoi: 30
+      # Thời gian chuẩn bị món mặc định nếu nhà hàng chưa khai báo (phút)
+      thoi-gian-chuan-bi-mac-dinh-phut: 20
+      # Số món tối đa trong một thực đơn
+      so-mon-toi-da-moi-thuc-don: 300
+      # Kích thước tối đa của ảnh món ăn tải lên
+      kich-thuoc-anh-toi-da-mb: 5
+      # Điểm đánh giá tối thiểu để nhà hàng còn được hiển thị
+      diem-danh-gia-toi-thieu: 3.0
+      # Tỷ lệ hoa hồng nền tảng thu trên mỗi đơn (phần trăm)
+      ty-le-hoa-hong-phan-tram: 15
+      # Khung giờ cao điểm áp dụng phụ phí và ưu tiên xử lý
+      khung-gio-cao-diem: "11:00-13:00,18:00-20:00"
+
+    cache:
+      # Thời gian sống của cache thực đơn (giây)
+      thoi-gian-song-thuc-don-giay: 300
+      thoi-gian-song-thong-tin-nha-hang-giay: 600
+
+    # Địa chỉ các service liên quan trong hệ sinh thái FoodX
+    integration:
+      order-service-url: http://order-service
+      delivery-service-url: http://delivery-service

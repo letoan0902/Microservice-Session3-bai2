@@ -1,0 +1,55 @@
+# =============================================================================
+# config-server-sample/application.yml
+#
+# Cấu hình của chính Config Server (Spring Boot 3.2.5, Spring Cloud 2023.0.1).
+# File này KHÔNG nằm trong kho config-repo, mà thuộc source code của
+# Config Server. Đây là nơi khai báo khóa mã hóa dùng cho cú pháp {cipher}...
+# =============================================================================
+
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          # Địa chỉ kho Git chứa cấu hình tập trung của FoodX
+          uri: https://git.foodx.local/platform/foodx-config-repo
+          # Nhánh mặc định khi client không chỉ định label
+          default-label: main
+          # Tự động kéo thay đổi mới nhất trước khi phục vụ cấu hình
+          clone-on-start: true
+          force-pull: true
+          timeout: 10
+          # Tài khoản chỉ có quyền đọc kho cấu hình
+          username: ${GIT_CONFIG_USERNAME}
+          password: ${GIT_CONFIG_PASSWORD}
+
+# --- Khóa mã hóa cho cú pháp {cipher}... ------------------------------------
+# TUYỆT ĐỐI KHÔNG ghi giá trị khóa trực tiếp vào đây và cũng không commit khóa
+# vào bất kỳ kho Git nào. Khóa phải được nạp qua biến môi trường hoặc keystore.
+#
+# Cách 1 - khóa đối xứng, đơn giản, phù hợp môi trường học tập và dev:
+encrypt:
+  key: ${ENCRYPT_KEY}
+
+# Cách 2 - khóa bất đối xứng bằng keystore, khuyến nghị cho môi trường thật:
+# encrypt:
+#   key-store:
+#     location: file:/etc/foodx/config-server.jks
+#     password: ${KEYSTORE_PASSWORD}
+#     alias: foodx-config-key
+#     secret: ${KEY_SECRET}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,env,refresh,busrefresh
+
+logging:
+  level:
+    org.springframework.cloud.config.server: INFO

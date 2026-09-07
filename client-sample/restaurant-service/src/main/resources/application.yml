@@ -1,0 +1,50 @@
+# =============================================================================
+# client-sample/restaurant-service/src/main/resources/application.yml
+#
+# CÁCH LÀM ĐÚNG với Spring Boot 3.2.5 + Spring Cloud 2023.0.1.
+#
+# File này nằm TRONG source code của restaurant-service và chỉ chứa đúng
+# ba thứ tối thiểu: service tên gì, lấy cấu hình ở đâu, chạy profile nào.
+# Toàn bộ phần còn lại (datasource, mật khẩu, cổng, cờ tính năng...)
+# nằm ở kho cấu hình tập trung config-repo, không nằm trong jar.
+#
+# QUAN TRỌNG: giá trị spring.application.name PHẢI trùng khít với tên file
+# trong config-repo. Ở đây name = "restaurant-service" nên Config Server sẽ
+# tìm restaurant-service.yml và restaurant-service-{profile}.yml.
+# Nếu trong config-repo chỉ có file config.yml thì sẽ KHÔNG khớp gì cả.
+# =============================================================================
+
+spring:
+  application:
+    # Đây chính là chữ {application} trong endpoint /{application}/{profile}
+    name: restaurant-service
+
+  # Spring Boot 3 dùng spring.config.import để nạp cấu hình từ Config Server.
+  # Tiền tố "optional:" cho phép service vẫn khởi động được khi Config Server
+  # chưa sẵn sàng. Ở môi trường thật nên BỎ "optional:" để service dừng ngay
+  # thay vì âm thầm chạy với cấu hình thiếu.
+  config:
+    import: "optional:configserver:http://localhost:8888"
+
+  profiles:
+    # Đây chính là chữ {profile} trong endpoint /{application}/{profile}.
+    # Khi chạy thật thường truyền qua tham số:
+    #   java -jar restaurant-service.jar --spring.profiles.active=prod
+    active: dev
+
+  cloud:
+    config:
+      # Nhánh (label) của Git repository chứa cấu hình
+      label: main
+      # Dừng khởi động nếu không lấy được cấu hình, tránh chạy nhầm mặc định
+      fail-fast: true
+      retry:
+        max-attempts: 6
+        initial-interval: 1000
+
+# Mở endpoint refresh để nạp lại cấu hình khi config-repo có thay đổi
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,refresh,env

@@ -1,0 +1,51 @@
+# =============================================================================
+# application-dev.yml
+# Cấu hình dùng chung cho MỌI service khi chạy với profile "dev".
+# Được áp dụng khi request tới Config Server có dạng /{application}/dev.
+# Ưu tiên cao hơn application.yml, thấp hơn {app}.yml và {app}-dev.yml.
+# =============================================================================
+
+spring:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # Môi trường dev mở toàn bộ endpoint để tiện gỡ lỗi
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+    env:
+      # Vẫn che giá trị nhạy cảm ngay cả ở môi trường dev
+      show-values: never
+
+logging:
+  level:
+    root: INFO
+    com.foodx: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.cloud.config: DEBUG
+    org.hibernate.SQL: DEBUG
+
+foodx:
+  environment: dev
+  common:
+    map-api-url: https://maps-sandbox.foodx.local/api/v1
+  http:
+    # Môi trường dev cho phép timeout dài hơn để tiện đặt breakpoint
+    connect-timeout-ms: 10000
+    read-timeout-ms: 15000
+  notification:
+    # Dev không gửi thông báo thật ra ngoài cho khách hàng
+    send-real: false
+    fake-channel: log
+  sample-data:
+    load-on-startup: true

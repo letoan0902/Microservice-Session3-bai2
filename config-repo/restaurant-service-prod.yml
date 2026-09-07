@@ -1,0 +1,60 @@
+# =============================================================================
+# restaurant-service-prod.yml
+# Cấu hình riêng của restaurant-service khi chạy profile "prod".
+# Được nạp khi service gọi tới: GET /restaurant-service/prod
+# Nguyên tắc: pool lớn hơn, timeout chặt hơn, tắt tính năng chưa ổn định.
+# =============================================================================
+
+spring:
+  datasource:
+    # Trỏ vào cụm CSDL thật của FoodX, bắt buộc bật SSL
+    url: jdbc:mysql://foodx-cluster.local:3306/restaurants_db?useSSL=true&requireSSL=true&serverTimezone=Asia/Ho_Chi_Minh
+    username: restaurant_service_user
+    password: "{cipher}AQBQcm9kUmVzdGF1cmFudFNlcnZpY2VEYXRhYmFzZVBhc3N3b3JkRW5jcnlwdGVkU2FtcGxlMDEyMzQ1Njc4OQ=="
+    hikari:
+      maximum-pool-size: 40
+      minimum-idle: 10
+      connection-timeout: 20000
+
+  data:
+    redis:
+      host: redis-cluster.foodx.local
+      port: 6379
+      password: "{cipher}AQBQcm9kUmVkaXNSZXN0YXVyYW50Q2FjaGVQYXNzd29yZEVuY3J5cHRlZFNhbXBsZUFCQ0RFRjAxMjM0NTY3"
+
+foodx:
+  restaurant:
+    timeout:
+      # Siết timeout để lỗi được phát hiện nhanh, tránh dồn ứ luồng
+      connect-timeout-ms: 2000
+      read-timeout-ms: 4000
+      xac-nhan-don-timeout-giay: 90
+      tra-cuu-thuc-don-timeout-ms: 500
+
+    feature:
+      bat-tat-mon-theo-thoi-gian-thuc: true
+      hien-thi-danh-gia: true
+      # Tính năng thử nghiệm phải tắt ở môi trường thật
+      goi-y-mon-bang-ai: false
+      nha-hang-tu-tao-khuyen-mai: false
+      tu-dong-dong-khi-qua-tai: true
+
+    business:
+      so-don-toi-da-dong-thoi: 50
+      thoi-gian-chuan-bi-mac-dinh-phut: 20
+      so-mon-toi-da-moi-thuc-don: 300
+      diem-danh-gia-toi-thieu: 3.5
+      ty-le-hoa-hong-phan-tram: 15
+      khung-gio-cao-diem: "11:00-13:00,18:00-20:00"
+
+    cache:
+      thoi-gian-song-thuc-don-giay: 600
+      thoi-gian-song-thong-tin-nha-hang-giay: 1800
+
+    integration:
+      order-service-url: http://order-service
+      delivery-service-url: http://delivery-service
+
+logging:
+  level:
+    com.foodx.restaurant: INFO

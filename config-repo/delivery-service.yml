@@ -1,0 +1,103 @@
+# =============================================================================
+# delivery-service.yml
+# Cấu hình mặc định của delivery-service
+# (spring.application.name = delivery-service).
+# Tên file tuân thủ đúng quy ước {spring.application.name}.yml.
+# Mọi mật khẩu và khóa API đều ở dạng {cipher}..., không có chữ thô.
+#
+# LƯU Ý: chuỗi {cipher}AQA... là bản mã MINH HỌA, sinh bằng:
+#   curl -X POST http://localhost:8888/encrypt -d 'MatKhauThat'
+# =============================================================================
+
+server:
+  port: 8083
+
+spring:
+  application:
+    name: delivery-service
+  datasource:
+    url: jdbc:mysql://foodx-cluster.local:3306/deliveries_db?useSSL=true&serverTimezone=Asia/Ho_Chi_Minh
+    username: delivery_service_user
+    password: "{cipher}AQBEZWxpdmVyeVNlcnZpY2VEYXRhYmFzZVBhc3N3b3JkRW5jcnlwdGVkU2FtcGxlRm9vZFgwMTIzNDU2Nzg5"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      pool-name: delivery-hikari-pool
+      maximum-pool-size: 20
+      minimum-idle: 6
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    open-in-view: false
+
+  # Redis lưu vị trí tài xế theo thời gian thực (dữ liệu ghi rất dày)
+  data:
+    redis:
+      host: redis.foodx.local
+      port: 6379
+      password: "{cipher}AQBSZWRpc0RlbGl2ZXJ5VHJhY2tpbmdQYXNzd29yZEVuY3J5cHRlZFNhbXBsZUZvb2RYMDEyMzQ1Njc4OUFC"
+      timeout: 2000ms
+
+  kafka:
+    bootstrap-servers: kafka.foodx.local:9092
+    consumer:
+      group-id: delivery-service-group
+      auto-offset-reset: latest
+
+foodx:
+  delivery:
+    timeout:
+      connect-timeout-ms: 3000
+      read-timeout-ms: 5000
+      # Thời gian chờ tài xế bấm nhận đơn trước khi chuyển cho tài xế khác
+      tai-xe-nhan-don-timeout-giay: 45
+      # Thời gian chờ phản hồi từ dịch vụ bản đồ khi tính quãng đường
+      goi-ban-do-timeout-ms: 2500
+      # Chu kỳ tài xế gửi tọa độ về hệ thống
+      cap-nhat-vi-tri-chu-ky-giay: 15
+
+    # --- Cờ tính năng ------------------------------------------------------
+    feature:
+      # Theo dõi vị trí tài xế theo thời gian thực trên bản đồ
+      theo-doi-vi-tri-thoi-gian-thuc: true
+      # Cho phép một tài xế nhận nhiều đơn cùng lúc trên cùng tuyến đường
+      gom-nhieu-don-mot-chuyen: true
+      # Tự động phân công tài xế gần nhất thay vì để tài xế tự chọn
+      tu-dong-phan-cong-tai-xe: true
+      # Tối ưu lộ trình bằng thuật toán nâng cao (đang thử nghiệm)
+      toi-uu-lo-trinh-nang-cao: false
+      # Giao hàng bằng xe điện được ưu tiên nhận đơn
+      uu-tien-xe-dien: false
+      # Cho phép khách hàng thay đổi địa chỉ giao khi tài xế đang di chuyển
+      cho-doi-dia-chi-giua-chung: false
+
+    # --- Cấu hình nghiệp vụ riêng của giao đồ ăn ----------------------------
+    business:
+      # Bán kính tìm tài xế quanh nhà hàng (ki-lô-mét)
+      ban-kinh-tim-tai-xe-km: 5.0
+      # Bán kính tối đa khi mở rộng tìm kiếm nếu không có tài xế
+      ban-kinh-toi-da-km: 12.0
+      # Quãng đường giao tối đa cho một đơn (ki-lô-mét)
+      quang-duong-giao-toi-da-km: 15.0
+      # Số đơn tối đa một tài xế được giữ cùng lúc
+      so-don-toi-da-moi-tai-xe: 3
+      # Phí giao hàng cơ bản (đồng)
+      phi-giao-co-ban: 15000
+      # Phí phụ trội cho mỗi ki-lô-mét vượt quá 3 km đầu (đồng)
+      phi-moi-km-vuot: 5000
+      # Số ki-lô-mét đầu tiên đã bao gồm trong phí cơ bản
+      so-km-mien-phi: 3.0
+      # Thời gian giao dự kiến tối đa cam kết với khách (phút)
+      thoi-gian-giao-cam-ket-phut: 45
+      # Số lần thử phân công lại khi tài xế từ chối
+      so-lan-phan-cong-lai: 5
+      # Tỷ lệ chiết khấu nền tảng thu trên phí giao (phần trăm)
+      ty-le-chiet-khau-phan-tram: 20
+
+    integration:
+      restaurant-service-url: http://restaurant-service
+      order-service-url: http://order-service
+      map-provider-url: https://maps.foodx.local/api/v1
+      map-provider-key: "{cipher}AQBNYXBQcm92aWRlckFwaUtleUVuY3J5cHRlZFNhbXBsZUZvb2RYQUJDREVGMDEyMzQ1Njc4OTAxMjM0NQ=="

@@ -1,0 +1,67 @@
+# =============================================================================
+# delivery-service-dev.yml
+# Cấu hình riêng của delivery-service khi chạy profile "dev".
+# Được nạp khi service gọi tới: GET /delivery-service/dev
+# =============================================================================
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/deliveries_db_dev?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
+    username: delivery_dev_user
+    password: "{cipher}AQBEZXZEZWxpdmVyeVNlcnZpY2VEYXRhYmFzZVBhc3N3b3JkU2FtcGxlRW5jcnlwdGVkMDEyMzQ1Njc4OUFC"
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: "{cipher}AQBEZXZSZWRpc0RlbGl2ZXJ5VHJhY2tpbmdQYXNzd29yZFNhbXBsZUVuY3J5cHRlZEFCQ0RFRjAxMjM0NTY3"
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: delivery-service-group-dev
+
+foodx:
+  delivery:
+    timeout:
+      connect-timeout-ms: 10000
+      read-timeout-ms: 15000
+      # Kéo dài để kịp thao tác tay khi kiểm thử luồng nhận đơn
+      tai-xe-nhan-don-timeout-giay: 300
+      goi-ban-do-timeout-ms: 10000
+      # Giảm tần suất gửi tọa độ để đỡ nhiễu log khi gỡ lỗi
+      cap-nhat-vi-tri-chu-ky-giay: 60
+
+    feature:
+      theo-doi-vi-tri-thoi-gian-thuc: true
+      gom-nhieu-don-mot-chuyen: true
+      tu-dong-phan-cong-tai-xe: true
+      # Bật thử nghiệm thuật toán tối ưu lộ trình ở môi trường dev
+      toi-uu-lo-trinh-nang-cao: true
+      uu-tien-xe-dien: true
+      cho-doi-dia-chi-giua-chung: true
+
+    business:
+      # Mở rộng bán kính để dữ liệu mẫu thưa vẫn tìm được tài xế
+      ban-kinh-tim-tai-xe-km: 50.0
+      ban-kinh-toi-da-km: 100.0
+      quang-duong-giao-toi-da-km: 100.0
+      so-don-toi-da-moi-tai-xe: 10
+      phi-giao-co-ban: 0
+      phi-moi-km-vuot: 0
+      thoi-gian-giao-cam-ket-phut: 999
+      so-lan-phan-cong-lai: 2
+
+    integration:
+      restaurant-service-url: http://localhost:8085
+      order-service-url: http://localhost:8082
+      # Dùng dịch vụ bản đồ giả lập, không tiêu tốn hạn mức gọi API thật
+      map-provider-url: https://maps-sandbox.foodx.local/api/v1
+      map-provider-key: "{cipher}AQBEZXZNYXBTYW5kYm94QXBpS2V5RW5jcnlwdGVkU2FtcGxlRm9vZFhBQkNERUYwMTIzNDU2Nzg5MDEyMw=="
+
+logging:
+  level:
+    com.foodx.delivery: TRACE

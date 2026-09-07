@@ -1,0 +1,17 @@
+# =============================================================================
+# bootstrap.yml của delivery-service theo CÁCH CŨ (Spring Boot 2.x).
+# Chỉ để đối chiếu, KHÔNG dùng trong bài làm này.
+# Spring Boot 3 dùng spring.config.import thay cho bootstrap.yml.
+# Xem giải thích đầy đủ tại:
+#   client-sample/restaurant-service/src/main/resources/bootstrap.yml.legacy
+# =============================================================================
+
+spring:
+  application:
+    name: delivery-service
+  cloud:
+    config:
+      uri: http://localhost:8888
+      label: main
+      profile: dev
+      fail-fast: true

@@ -1,0 +1,95 @@
+# =============================================================================
+# application.yml
+# Cấu hình DÙNG CHUNG cho MỌI service của hệ thống FoodX.
+# Config Server luôn nạp file này đầu tiên với bất kỳ request
+# /{application}/{profile} nào. Đây là lớp có độ ưu tiên THẤP NHẤT.
+#
+# Thứ tự override (trái sang phải, phải thắng trái):
+#   application.yml < application-{profile}.yml < {app}.yml < {app}-{profile}.yml
+# =============================================================================
+
+info:
+  he-thong: "FoodX - Nền tảng đặt và giao đồ ăn"
+  to-chuc: "FoodX Engineering"
+  kho-cau-hinh: "https://git.foodx.local/platform/foodx-config-repo"
+  nguoi-quan-tri: "platform-team@foodx.local"
+
+spring:
+  jackson:
+    default-property-inclusion: non_null
+    time-zone: Asia/Ho_Chi_Minh
+    serialization:
+      write-dates-as-timestamps: false
+  lifecycle:
+    # Chờ xử lý nốt các request đang chạy trước khi tắt service
+    timeout-per-shutdown-phase: 30s
+  cloud:
+    config:
+      # Nếu không lấy được cấu hình từ Config Server thì dừng ngay,
+      # tránh trường hợp service khởi động âm thầm với cấu hình rỗng
+      fail-fast: true
+      retry:
+        initial-interval: 1000
+        max-attempts: 6
+        max-interval: 2000
+        multiplier: 1.1
+
+server:
+  shutdown: graceful
+  error:
+    # Không lộ thông điệp lỗi và stacktrace ra ngoài response
+    include-message: never
+    include-stacktrace: never
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/plain
+
+# --- Actuator: chuẩn giám sát chung cho toàn bộ hệ thống FoodX ---------------
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        # refresh   : nạp lại cấu hình từ Config Server không cần khởi động lại
+        # env       : kiểm chứng propertySource thực sự được nạp từ đâu
+        # busrefresh: làm mới hàng loạt qua Spring Cloud Bus
+        include: health,info,metrics,refresh,env,configprops,busrefresh
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+    env:
+      # Che giá trị của các khóa nhạy cảm khi hiển thị qua /actuator/env
+      show-values: never
+  info:
+    env:
+      enabled: true
+  metrics:
+    tags:
+      he-thong: foodx
+
+# --- Ghi log chung ----------------------------------------------------------
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [${spring.application.name:foodx}] %logger{36} - %msg%n"
+  level:
+    root: INFO
+    com.foodx: INFO
+    org.springframework.cloud.config: INFO
+
+# --- Các hằng số nghiệp vụ dùng chung toàn hệ thống FoodX -------------------
+foodx:
+  common:
+    # Múi giờ, đơn vị tiền tệ và ngôn ngữ mặc định của toàn hệ thống
+    timezone: Asia/Ho_Chi_Minh
+    currency: VND
+    default-locale: vi-VN
+    map-api-url: https://maps.foodx.local/api/v1
+  http:
+    # Thời gian chờ (timeout) mặc định khi gọi liên service
+    connect-timeout-ms: 3000
+    read-timeout-ms: 5000
+  resilience:
+    max-retry: 3
+    retry-delay-ms: 500

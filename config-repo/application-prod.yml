@@ -1,0 +1,47 @@
+# =============================================================================
+# application-prod.yml
+# Cấu hình dùng chung cho MỌI service khi chạy với profile "prod".
+# Nguyên tắc: đóng bớt endpoint, giảm mức log, siết timeout, không lộ thông tin.
+# =============================================================================
+
+spring:
+  jpa:
+    show-sql: false
+    hibernate:
+      # Tuyệt đối không để Hibernate tự đổi lược đồ ở môi trường thật
+      ddl-auto: validate
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # Chỉ mở đúng những endpoint mà hệ thống giám sát cần dùng
+        include: health,info,metrics,prometheus,refresh,busrefresh
+  endpoint:
+    health:
+      show-details: never
+    env:
+      show-values: never
+
+logging:
+  level:
+    root: WARN
+    com.foodx: INFO
+    org.springframework: WARN
+  file:
+    name: /var/log/foodx/${spring.application.name}.log
+
+foodx:
+  environment: prod
+  common:
+    map-api-url: https://maps.foodx.local/api/v1
+  http:
+    connect-timeout-ms: 2000
+    read-timeout-ms: 4000
+  resilience:
+    max-retry: 2
+    retry-delay-ms: 300
+  notification:
+    send-real: true
+  sample-data:
+    load-on-startup: false

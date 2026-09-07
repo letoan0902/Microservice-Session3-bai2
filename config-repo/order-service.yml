@@ -1,0 +1,95 @@
+# =============================================================================
+# order-service.yml
+# Cấu hình mặc định của order-service (spring.application.name = order-service).
+# Tên file tuân thủ đúng quy ước {spring.application.name}.yml.
+# Mọi mật khẩu đều ở dạng {cipher}..., không có chữ thô trong kho cấu hình.
+#
+# LƯU Ý: chuỗi {cipher}AQA... là bản mã MINH HỌA, sinh bằng:
+#   curl -X POST http://localhost:8888/encrypt -d 'MatKhauThat'
+# =============================================================================
+
+server:
+  port: 8082
+
+spring:
+  application:
+    name: order-service
+  datasource:
+    url: jdbc:mysql://foodx-cluster.local:3306/orders_db?useSSL=true&serverTimezone=Asia/Ho_Chi_Minh
+    username: order_service_user
+    password: "{cipher}AQBPcmRlclNlcnZpY2VEYXRhYmFzZVBhc3N3b3JkRW5jcnlwdGVkU2FtcGxlRm9vZFgwMTIzNDU2Nzg5QUJD"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      pool-name: order-hikari-pool
+      # order-service chịu tải ghi cao nhất hệ thống nên pool lớn hơn
+      maximum-pool-size: 25
+      minimum-idle: 8
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    open-in-view: false
+
+  # Kafka dùng để phát sự kiện đơn hàng cho restaurant-service và delivery-service
+  kafka:
+    bootstrap-servers: kafka.foodx.local:9092
+    properties:
+      sasl.jaas.config: "{cipher}AQBLYWZrYVNhc2xKYWFzQ29uZmlnUGFzc3dvcmRFbmNyeXB0ZWRTYW1wbGVGb29kWDAxMjM0NTY3ODlBQg=="
+    producer:
+      acks: all
+      retries: 3
+    consumer:
+      group-id: order-service-group
+      auto-offset-reset: earliest
+
+foodx:
+  order:
+    timeout:
+      connect-timeout-ms: 3000
+      read-timeout-ms: 5000
+      # Thời gian giữ chỗ đơn hàng trong lúc chờ thanh toán
+      thanh-toan-timeout-giay: 300
+      # Thời gian chờ nhà hàng phản hồi trước khi tự chuyển nhà hàng khác
+      cho-nha-hang-phan-hoi-giay: 120
+      # Khoảng thời gian khách được hủy đơn miễn phí sau khi đặt
+      cho-phep-huy-don-giay: 60
+
+    # --- Cờ tính năng ------------------------------------------------------
+    feature:
+      # Cho phép đặt đơn theo lịch hẹn giờ
+      dat-don-hen-gio: true
+      # Cho phép gộp nhiều nhà hàng trong một đơn
+      gop-nhieu-nha-hang-mot-don: false
+      # Áp dụng mã giảm giá tự động khi đủ điều kiện
+      tu-dong-ap-ma-giam-gia: true
+      # Cho phép thanh toán khi nhận hàng
+      thanh-toan-khi-nhan-hang: true
+      # Chia hóa đơn giữa nhiều người đặt
+      chia-hoa-don: false
+
+    # --- Cấu hình nghiệp vụ riêng của đặt đồ ăn -----------------------------
+    business:
+      # Giá trị đơn hàng tối thiểu (đồng)
+      gia-tri-don-toi-thieu: 30000
+      # Giá trị đơn hàng tối đa cho một lần đặt (đồng)
+      gia-tri-don-toi-da: 5000000
+      # Số món tối đa trong một đơn
+      so-mon-toi-da-moi-don: 50
+      # Số đơn tối đa một khách được đặt trong một giờ (chống spam)
+      so-don-toi-da-moi-gio: 10
+      # Phụ phí giờ cao điểm (đồng)
+      phu-phi-cao-diem: 5000
+      # Số lần thử lại khi phát sự kiện đơn hàng thất bại
+      so-lan-thu-lai-phat-su-kien: 3
+      # Các phương thức thanh toán được chấp nhận
+      phuong-thuc-thanh-toan: "TIEN_MAT,THE_TIN_DUNG,VI_DIEN_TU,CHUYEN_KHOAN"
+      # Số ngày lưu lịch sử đơn hàng trước khi chuyển sang kho lưu trữ lạnh
+      so-ngay-luu-lich-su: 365
+
+    integration:
+      restaurant-service-url: http://restaurant-service
+      delivery-service-url: http://delivery-service
+      payment-gateway-url: https://pay.foodx.local/api/v1
+      payment-gateway-key: "{cipher}AQBQYXltZW50R2F0ZXdheUFwaUtleUVuY3J5cHRlZFNhbXBsZUZvb2RYQUJDREVGMDEyMzQ1Njc4OTAxMjM="

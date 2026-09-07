@@ -1,0 +1,57 @@
+# =============================================================================
+# order-service-dev.yml
+# Cấu hình riêng của order-service khi chạy profile "dev".
+# Được nạp khi service gọi tới: GET /order-service/dev
+# =============================================================================
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/orders_db_dev?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
+    username: order_dev_user
+    password: "{cipher}AQBEZXZPcmRlclNlcnZpY2VEYXRhYmFzZVBhc3N3b3JkU2FtcGxlRW5jcnlwdGVkMDEyMzQ1Njc4OUFCQ0Q="
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: order-service-group-dev
+
+foodx:
+  order:
+    timeout:
+      connect-timeout-ms: 10000
+      read-timeout-ms: 15000
+      # Rút ngắn để kiểm thử nhanh kịch bản hết hạn thanh toán
+      thanh-toan-timeout-giay: 30
+      cho-nha-hang-phan-hoi-giay: 30
+      cho-phep-huy-don-giay: 300
+
+    feature:
+      # Bật hết tính năng thử nghiệm ở môi trường phát triển
+      dat-don-hen-gio: true
+      gop-nhieu-nha-hang-mot-don: true
+      tu-dong-ap-ma-giam-gia: true
+      thanh-toan-khi-nhan-hang: true
+      chia-hoa-don: true
+
+    business:
+      # Hạ ngưỡng để kiểm thử không cần tạo đơn giá trị lớn
+      gia-tri-don-toi-thieu: 1000
+      gia-tri-don-toi-da: 10000000
+      so-don-toi-da-moi-gio: 1000
+      phu-phi-cao-diem: 0
+      so-ngay-luu-lich-su: 7
+
+    integration:
+      restaurant-service-url: http://localhost:8085
+      delivery-service-url: http://localhost:8083
+      # Dùng cổng thanh toán giả lập, không gọi ra hệ thống thật
+      payment-gateway-url: https://pay-sandbox.foodx.local/api/v1
+      payment-gateway-key: "{cipher}AQBEZXZQYXltZW50U2FuZGJveEFwaUtleUVuY3J5cHRlZFNhbXBsZUZvb2RYMDEyMzQ1Njc4OUFCQ0RFRg=="
+
+logging:
+  level:
+    com.foodx.order: TRACE
+    org.springframework.kafka: DEBUG

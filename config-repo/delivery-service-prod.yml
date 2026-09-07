@@ -1,0 +1,65 @@
+# =============================================================================
+# delivery-service-prod.yml
+# Cấu hình riêng của delivery-service khi chạy profile "prod".
+# Được nạp khi service gọi tới: GET /delivery-service/prod
+# =============================================================================
+
+spring:
+  datasource:
+    url: jdbc:mysql://foodx-cluster.local:3306/deliveries_db?useSSL=true&requireSSL=true&serverTimezone=Asia/Ho_Chi_Minh
+    username: delivery_service_user
+    password: "{cipher}AQBQcm9kRGVsaXZlcnlTZXJ2aWNlRGF0YWJhc2VQYXNzd29yZEVuY3J5cHRlZFNhbXBsZTAxMjM0NTY3ODk="
+    hikari:
+      maximum-pool-size: 45
+      minimum-idle: 12
+      connection-timeout: 20000
+
+  data:
+    redis:
+      host: redis-cluster.foodx.local
+      port: 6379
+      password: "{cipher}AQBQcm9kUmVkaXNEZWxpdmVyeVRyYWNraW5nUGFzc3dvcmRFbmNyeXB0ZWRTYW1wbGVBQkNERUYwMTIzNDU="
+
+  kafka:
+    bootstrap-servers: kafka-1.foodx.local:9092,kafka-2.foodx.local:9092,kafka-3.foodx.local:9092
+
+foodx:
+  delivery:
+    timeout:
+      connect-timeout-ms: 2000
+      read-timeout-ms: 4000
+      tai-xe-nhan-don-timeout-giay: 30
+      goi-ban-do-timeout-ms: 1500
+      # Tần suất cao để bản đồ theo dõi mượt cho khách hàng
+      cap-nhat-vi-tri-chu-ky-giay: 10
+
+    feature:
+      theo-doi-vi-tri-thoi-gian-thuc: true
+      gom-nhieu-don-mot-chuyen: true
+      tu-dong-phan-cong-tai-xe: true
+      # Thuật toán thử nghiệm phải tắt ở môi trường thật
+      toi-uu-lo-trinh-nang-cao: false
+      uu-tien-xe-dien: false
+      cho-doi-dia-chi-giua-chung: false
+
+    business:
+      ban-kinh-tim-tai-xe-km: 5.0
+      ban-kinh-toi-da-km: 12.0
+      quang-duong-giao-toi-da-km: 15.0
+      so-don-toi-da-moi-tai-xe: 3
+      phi-giao-co-ban: 15000
+      phi-moi-km-vuot: 5000
+      so-km-mien-phi: 3.0
+      thoi-gian-giao-cam-ket-phut: 45
+      so-lan-phan-cong-lai: 5
+      ty-le-chiet-khau-phan-tram: 20
+
+    integration:
+      restaurant-service-url: http://restaurant-service
+      order-service-url: http://order-service
+      map-provider-url: https://maps.foodx.local/api/v1
+      map-provider-key: "{cipher}AQBQcm9kTWFwUHJvdmlkZXJBcGlLZXlFbmNyeXB0ZWRTYW1wbGVGb29kWDAxMjM0NTY3ODlBQkNERUYwMTI="
+
+logging:
+  level:
+    com.foodx.delivery: INFO

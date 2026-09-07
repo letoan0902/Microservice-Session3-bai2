@@ -1,0 +1,49 @@
+# =============================================================================
+# FILE GỐC CÓ LỖI - GIỮ LẠI ĐỂ ĐỐI CHIẾU, KHÔNG DÙNG
+#
+# Tên file trên Git repository lúc đầu: config.yml
+# Người tạo: một thực tập sinh của FoodX
+# Dành cho: restaurant-service (spring.application.name = "restaurant-service")
+#
+# Phần mở rộng .old được thêm vào để chắc chắn Config Server không bao giờ
+# phục vụ nội dung này. File chỉ tồn tại như bằng chứng đối chiếu trước/sau.
+#
+# -------------------------------------------------------------------------
+# HAI LỖI CẦN KHẮC PHỤC
+# -------------------------------------------------------------------------
+# LỖI 1 - Đặt sai tên file:
+#   Tên "config.yml" không khớp với spring.application.name của service.
+#   Quy ước bắt buộc của Spring Cloud Config Server là:
+#       {spring.application.name}.yml           -> restaurant-service.yml
+#       {spring.application.name}-{profile}.yml -> restaurant-service-dev.yml
+#   Khi restaurant-service gọi GET /restaurant-service/dev, Config Server chỉ
+#   tìm 4 file: restaurant-service-dev.yml, restaurant-service.yml,
+#   application-dev.yml, application.yml. File config.yml KHÔNG nằm trong
+#   danh sách đó nên sẽ không bao giờ được đọc.
+#   Xem phân tích đầy đủ tại docs/01-phan-tich-loi-cau-hinh.md
+#
+# LỖI 2 - Lưu mật khẩu dạng chữ thô:
+#   Chuỗi "RestaurantPass123" hiện nguyên văn trong kho Git. Bất kỳ ai clone
+#   được kho đều đọc được mật khẩu cơ sở dữ liệu sản xuất. Nghiêm trọng hơn,
+#   lịch sử Git giữ chuỗi này vĩnh viễn kể cả khi sau đó xóa đi.
+#   Cách sửa: mã hóa bằng POST /encrypt của Config Server và lưu dạng
+#   {cipher}AQA...
+#   Xem phân tích đầy đủ tại docs/02-bao-mat-mat-khau.md
+#
+# GHI CHÚ THÊM: cổng 8085 cũng không nằm trong dải quy ước của FoodX
+# (restaurant 8081, order 8082, delivery 8083) nên đã được chuẩn hóa lại.
+#
+# FILE ĐÃ SỬA: config-repo/restaurant-service.yml
+# =============================================================================
+
+# --- NỘI DUNG GỐC NGUYÊN VĂN CỦA THỰC TẬP SINH ------------------------------
+# Tên file hiện tại: config.yml
+# (restaurant-service có spring.application.name = "restaurant-service")
+spring:
+  datasource:
+    url: jdbc:mysql://foodx-cluster.local:3306/restaurants_db
+    username: restaurant_service_user
+    # Mật khẩu lưu thẳng dạng chữ, không mã hóa
+    password: RestaurantPass123
+server:
+  port: 8085

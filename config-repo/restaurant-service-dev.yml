@@ -1,0 +1,59 @@
+# =============================================================================
+# restaurant-service-dev.yml
+# Cấu hình riêng của restaurant-service khi chạy profile "dev".
+# Đây là lớp có ĐỘ ƯU TIÊN CAO NHẤT, ghi đè mọi lớp phía dưới.
+# Được nạp khi service gọi tới: GET /restaurant-service/dev
+# =============================================================================
+
+spring:
+  datasource:
+    # Môi trường dev dùng máy chủ CSDL riêng, không đụng vào dữ liệu thật
+    url: jdbc:mysql://localhost:3306/restaurants_db_dev?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
+    username: restaurant_dev_user
+    # Ngay cả mật khẩu môi trường dev cũng phải mã hóa, không để chữ thô
+    password: "{cipher}AQBEZXZSZXN0YXVyYW50U2VydmljZURhdGFiYXNlUGFzc3dvcmRTYW1wbGVFbmNyeXB0ZWQwMTIzNDU2Nzg5"
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: "{cipher}AQBEZXZSZWRpc1Jlc3RhdXJhbnRDYWNoZVBhc3N3b3JkU2FtcGxlRW5jcnlwdGVkQUJDREVGMDEyMzQ1Njc4OQ=="
+
+foodx:
+  restaurant:
+    timeout:
+      # Nới rộng timeout để tiện đặt breakpoint khi gỡ lỗi
+      connect-timeout-ms: 10000
+      read-timeout-ms: 15000
+      xac-nhan-don-timeout-giay: 600
+      tra-cuu-thuc-don-timeout-ms: 5000
+
+    feature:
+      # Bật hết các tính năng thử nghiệm để đội phát triển kiểm thử
+      bat-tat-mon-theo-thoi-gian-thuc: true
+      hien-thi-danh-gia: true
+      goi-y-mon-bang-ai: true
+      nha-hang-tu-tao-khuyen-mai: true
+      tu-dong-dong-khi-qua-tai: false
+
+    business:
+      # Ngưỡng thấp để dễ tái hiện kịch bản quá tải khi kiểm thử
+      so-don-toi-da-dong-thoi: 5
+      thoi-gian-chuan-bi-mac-dinh-phut: 1
+      diem-danh-gia-toi-thieu: 0.0
+
+    cache:
+      # Cache ngắn để thấy ngay thay đổi khi đang phát triển
+      thoi-gian-song-thuc-don-giay: 10
+      thoi-gian-song-thong-tin-nha-hang-giay: 10
+
+    integration:
+      order-service-url: http://localhost:8082
+      delivery-service-url: http://localhost:8083
+
+logging:
+  level:
+    com.foodx.restaurant: TRACE

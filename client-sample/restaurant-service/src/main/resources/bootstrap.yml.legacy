@@ -1,0 +1,63 @@
+# =============================================================================
+# bootstrap.yml (CÁCH CŨ - CHỈ ĐỂ ĐỐI CHIẾU, KHÔNG DÙNG NỮA)
+#
+# Phần mở rộng .legacy được thêm vào có chủ đích để Spring Boot 3 KHÔNG nạp
+# file này. Đây chỉ là tài liệu minh họa cách làm của Spring Boot 2.x.
+#
+# ------------------------------------------------------------------------
+# BỐI CẢNH LỊCH SỬ
+# ------------------------------------------------------------------------
+# Spring Boot 2.x có khái niệm "bootstrap context": một ngữ cảnh cha chạy
+# TRƯỚC ApplicationContext chính, chuyên để nạp cấu hình từ nguồn bên ngoài
+# như Config Server. File bootstrap.yml được đọc trong ngữ cảnh cha đó.
+# Muốn dùng phải thêm phụ thuộc spring-cloud-starter-bootstrap.
+#
+# Từ Spring Boot 2.4 trở đi, cơ chế bootstrap bị coi là lỗi thời và được
+# thay bằng spring.config.import. Với Spring Boot 3.2.5 + Spring Cloud
+# 2023.0.1 thì spring.config.import là cách dùng CHÍNH THỨC.
+#
+# ------------------------------------------------------------------------
+# BẢNG SO SÁNH
+# ------------------------------------------------------------------------
+# Tiêu chí            | bootstrap.yml (cũ)          | spring.config.import (mới)
+# --------------------|-----------------------------|---------------------------
+# Phiên bản           | Spring Boot 2.3 trở về trước| Spring Boot 2.4 trở lên
+# Phụ thuộc thêm      | spring-cloud-starter-       | không cần
+#                     | bootstrap                   |
+# Ngữ cảnh            | có bootstrap context riêng  | dùng chung một ngữ cảnh
+# Thứ tự nạp          | khó đoán, dễ nhầm ưu tiên   | rõ ràng, theo thứ tự khai báo
+# Chịu lỗi            | phải cấu hình thêm          | có sẵn tiền tố "optional:"
+# Gỡ lỗi              | khó, hai ngữ cảnh chồng nhau| dễ, một luồng nạp duy nhất
+#
+# ------------------------------------------------------------------------
+# NỘI DUNG THEO CÁCH CŨ (chỉ để tham khảo)
+# ------------------------------------------------------------------------
+spring:
+  application:
+    name: restaurant-service
+  cloud:
+    config:
+      # Cách cũ khai báo địa chỉ Config Server bằng thuộc tính uri
+      uri: http://localhost:8888
+      label: main
+      fail-fast: true
+      # Cách cũ khai báo profile ngay trong bootstrap
+      profile: dev
+      retry:
+        max-attempts: 6
+        initial-interval: 1000
+
+# ------------------------------------------------------------------------
+# TƯƠNG ĐƯƠNG THEO CÁCH MỚI (xem file application.yml cùng thư mục)
+# ------------------------------------------------------------------------
+# spring:
+#   application:
+#     name: restaurant-service
+#   config:
+#     import: "optional:configserver:http://localhost:8888"
+#   profiles:
+#     active: dev
+#   cloud:
+#     config:
+#       label: main
+#       fail-fast: true
